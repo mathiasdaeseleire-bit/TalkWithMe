@@ -22,10 +22,14 @@ def _target_command() -> str:
     return f'"{sys.executable}" -m talkwithme'
 
 
-def enable() -> None:
+def enable(launcher: tuple[str, str] | None = None) -> None:
+    """`launcher` is (pythonw.exe, project dir), used when Smart App
+    Control blocks the unsigned exe."""
+    command = (f'"{launcher[0]}" -m talkwithme' if launcher
+                else _target_command())
     with winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, RUN_KEY, 0,
                              winreg.KEY_SET_VALUE) as key:
-        winreg.SetValueEx(key, VALUE_NAME, 0, winreg.REG_SZ, _target_command())
+        winreg.SetValueEx(key, VALUE_NAME, 0, winreg.REG_SZ, command)
 
 
 def disable() -> None:

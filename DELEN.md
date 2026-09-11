@@ -100,6 +100,10 @@ een configbestand.
 - **Microsoft Store-apps** (de nieuwe Kladblok, sommige desktop-apps) weigeren
   gesimuleerde toetsaanslagen. Daar komt de tekst op het klembord terecht in
   plaats van op de cursor. Dat is een Windows-beperking, geen bug.
+- **Smart App Control** (Windows 11) weigert een zelfgebouwde .exe helemaal:
+  geen "toch uitvoeren", geen uitzonderingen, en uitschakelen kan niet meer
+  teruggedraaid worden. Start de app dan via `pythonw -m talkwithme` — Python
+  is wel ondertekend, dus dat mag gewoon.
 - **SmartScreen en antivirus** zullen waarschuwen bij een zelfgebouwde .exe. Een
   low-level keyboard hook plus toetsaanslagen simuleren is letterlijk wat een
   keylogger doet — dat je app het om goede redenen doet, ziet een scanner niet.

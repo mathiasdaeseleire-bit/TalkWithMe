@@ -19,6 +19,46 @@ from .icon import save_ico
 log = logging.getLogger("talkwithme.install")
 
 APP_NAME = "TalkWithMe"
+SAC_POLICY_KEY = r"SYSTEM\CurrentControlSet\Control\CI\Policy"
+SAC_VALUE = "VerifiedAndReputablePolicyState"
+SAC_OFF, SAC_ON, SAC_EVALUATION = 0, 1, 2
+
+
+def smart_app_control_state() -> int | None:
+    """0 off, 1 on, 2 evaluation, None when the machine has no such policy.
+
+    Smart App Control blocks executables that are neither signed by a
+    trusted publisher nor known-good to Microsoft's reputation service. A
+    self-built one-file exe is both unsigned and unknown, so it is refused
+    outright — and unlike SmartScreen there is no "run anyway" and no
+    exclusion list.
+    """
+    import winreg
+    try:
+        with winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, SAC_POLICY_KEY) as key:
+            value, _ = winreg.QueryValueEx(key, SAC_VALUE)
+            return int(value)
+    except (FileNotFoundError, OSError, ValueError):
+        return None
+
+
+def python_launcher() -> tuple[str, str] | None:
+    """The signed pythonw.exe and the project directory to run from.
+
+    The way past Smart App Control without weakening it: python.exe and
+    pythonw.exe carry a valid Python Software Foundation signature, so the
+    thing Windows is asked to trust is Python itself, which it already
+    does. Our code is then just a script that Python reads.
+    """
+    launcher = os.path.join(os.path.dirname(sys.executable), "pythonw.exe")
+    if not os.path.exists(launcher):
+        return None
+    project = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if not os.path.exists(os.path.join(project, "talkwithme", "__main__.py")):
+        return None
+    return launcher, project
+
+
 def _install_root() -> str:
     r"""Where to put the exe so that Windows can actually find it.
 
@@ -83,14 +123,16 @@ def running_from_install_dir() -> bool:
 
 
 def _create_shortcut(path: str, target: str, icon: str | None = None,
-                      description: str = "") -> None:
+                      description: str = "", arguments: str = "",
+                      working_dir: str | None = None) -> None:
     """A .lnk via the Windows Script Host COM object — the only way to make
     a real shortcut without shipping extra dependencies."""
     import win32com.client
     shell = win32com.client.Dispatch("WScript.Shell")
     link = shell.CreateShortCut(path)
     link.TargetPath = target
-    link.WorkingDirectory = os.path.dirname(target)
+    link.Arguments = arguments
+    link.WorkingDirectory = working_dir or os.path.dirname(target)
     link.Description = description or f"{APP_NAME} — dicteren met je stem"
     # Point at the icon embedded in the exe rather than a loose .ico:
     # Windows refreshes that reliably, and there is no second file to
@@ -131,12 +173,24 @@ def install(source_exe: str | None = None) -> str:
     except Exception as e:
         log.warning("kon icoon niet schrijven: %s", e)
 
+    # Smart App Control refuses an unsigned, unknown exe outright: no
+    # "run anyway", no exclusion list, and switching it off is permanent.
+    # Launching through the signed pythonw.exe sidesteps it without
+    # weakening anything, so prefer that when SAC is active.
+    launcher = python_launcher() if smart_app_control_state() == SAC_ON else None
+
     try:
-        _create_shortcut(SHORTCUT_PATH, INSTALLED_EXE, f"{ICON_PATH},0")
+        if launcher:
+            pythonw, project = launcher
+            _create_shortcut(SHORTCUT_PATH, pythonw, f"{ICON_PATH},0",
+                              arguments="-m talkwithme", working_dir=project)
+            log.info("Smart App Control staat aan; snelkoppeling gaat via %s", pythonw)
+        else:
+            _create_shortcut(SHORTCUT_PATH, INSTALLED_EXE, f"{ICON_PATH},0")
     except Exception as e:
         log.warning("kon Start-menu snelkoppeling niet maken: %s", e)
 
-    autostart.enable()
+    autostart.enable(launcher)
     return INSTALLED_EXE
 
 

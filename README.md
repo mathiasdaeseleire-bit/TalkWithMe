@@ -125,6 +125,31 @@ nieuwe Kladblok komt je tekst op het klembord terecht in plaats van op je cursor
 met een melding erbij. Dat is een beveiligingsgrens van Windows, geen bug die
 hier op te lossen valt.
 
+### Smart App Control blokkeert de .exe
+
+Staat Smart App Control aan (Windows 11), dan weigert Windows een zelfgebouwde
+`.exe` te starten. Die is immers niet ondertekend en bij Microsoft onbekend.
+Anders dan bij SmartScreen is er geen "toch uitvoeren" en geen uitzonderingenlijst,
+en **uitschakelen kan niet ongedaan gemaakt worden** zonder Windows opnieuw te
+installeren. Doe dat dus niet voor deze app.
+
+Start hem in plaats daarvan via Python zelf, dat wél geldig ondertekend is:
+
+```bash
+venv\Scripts\pythonw -m talkwithme
+```
+
+`--install` merkt dit vanzelf op en laat de snelkoppeling en het automatisch
+opstarten die route volgen. Je beveiliging blijft daarmee volledig intact.
+
+Controleren in welke stand het staat:
+
+```bash
+reg query "HKLM\SYSTEM\CurrentControlSet\Control\CI\Policy" /v VerifiedAndReputablePolicyState
+```
+
+`0x0` is uit, `0x1` aan, `0x2` evaluatie.
+
 **Je virusscanner kan aanslaan.** Een low-level keyboard hook die ook
 toetsaanslagen simuleert is technisch niet te onderscheiden van een keylogger.
 Reken op een SmartScreen-waarschuwing bij een zelfgebouwde `.exe`.

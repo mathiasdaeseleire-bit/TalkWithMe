@@ -3,6 +3,15 @@
 Versienummers volgen de tag van de GitHub-release. De app vergelijkt de
 nieuwste tag met `__version__` in `talkwithme/__init__.py`.
 
+## 0.5.2
+
+**Werkt nu ook met Smart App Control aan.** Windows 11 weigert een
+zelfgebouwde `.exe` die niet ondertekend en bij Microsoft onbekend is, en
+biedt daarbij geen "toch uitvoeren" of uitzonderingenlijst. De app start
+daarom via `pythonw.exe`, dat geldig ondertekend is door de Python Software
+Foundation. `--install` herkent de situatie en laat de snelkoppeling en het
+automatisch opstarten die route volgen, zodat de beveiliging aan kan blijven.
+
 ## 0.5.1
 
 **Opgelost: verkeerde taal in de transcriptie.** Sinds de overstap naar
