@@ -110,6 +110,13 @@ ICON_PATH = os.path.join(INSTALL_DIR, f"{APP_NAME}.ico")
 START_MENU_DIR = os.path.join(os.environ.get("APPDATA", ""),
                                r"Microsoft\Windows\Start Menu\Programs")
 SHORTCUT_PATH = os.path.join(START_MENU_DIR, f"{APP_NAME}.lnk")
+# A taskbar pin is a second, independent .lnk. Windows will not let a
+# program create one, but once the user has pinned it, leaving it
+# pointing at a stale target is how a shortcut ends up erroring out.
+TASKBAR_DIR = os.path.join(
+    os.environ.get("APPDATA", ""),
+    "Microsoft", "Internet Explorer", "Quick Launch", "User Pinned", "TaskBar")
+TASKBAR_SHORTCUT = os.path.join(TASKBAR_DIR, f"{APP_NAME}.lnk")
 
 
 def is_installed() -> bool:

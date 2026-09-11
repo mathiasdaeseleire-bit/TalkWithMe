@@ -11,6 +11,8 @@ biedt daarbij geen "toch uitvoeren" of uitzonderingenlijst. De app start
 daarom via `pythonw.exe`, dat geldig ondertekend is door de Python Software
 Foundation. `--install` herkent de situatie en laat de snelkoppeling en het
 automatisch opstarten die route volgen, zodat de beveiliging aan kan blijven.
+Een bestaande taakbalk-snelkoppeling wordt daarbij ook bijgewerkt: die is een
+apart bestand, en bleef anders naar het geblokkeerde bestand wijzen.
 
 ## 0.5.1
 
